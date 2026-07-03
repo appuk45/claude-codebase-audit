@@ -61,6 +61,8 @@ codebase-audit/                    # plugin root
       04-issues.md  05-architecture.md  06-dependencies.md
       07-i18n.md  08-api.md  09-resilience.md  10-container-iac.md
       11-observability.md          # NEW
+      examples/                    # curated pos/neg snippets, loaded ON DEMAND only (5a.2)
+        01-performance.md  ...  11-observability.md
     discovery.md                   # stack-detect commands + archetype classification (see 5a.1)
     scoring.md                     # ONE score formula + CI-gate rules
     schema.json                    # AuditResult JSON contract (validates every dim)
@@ -131,9 +133,15 @@ Steps:
   1. If discovery_context absent (standalone run) -> run shared/discovery.md, build it.
      If present (subagent run) -> use injected context, skip discovery.
         # This fixes the "discovery runs 10x" problem under orchestration.
-  2. Read shared/detection/02-security.md -> apply checklist + detection patterns to source.
-  3. Score via shared/scoring.md formula.
-  4. Emit AuditResult JSON (validates against shared/schema.json).
+  2. Filter checklist by discovery_context.archetypes -> non-applicable items = "skipped".
+  3. TWO-STAGE DETECTION (token-bounded, see 5a.2):
+       a. Mechanical scan: run each applicable item's `signals` (ripgrep/AST) + relevant
+          external-tool output -> candidate file:line list. NO whole-repo LLM read.
+       b. LLM confirm: read ONLY candidate snippets (+/- a few lines). Apply the item's
+          confirm/reject rule; assign severity (with context modifiers). Consult
+          shared/detection/examples/NN-*.md ONLY if a candidate is ambiguous.
+  4. Score via shared/scoring.md formula.
+  5. Emit AuditResult JSON (validates against shared/schema.json).
        - standalone (no --json): also print a terse markdown summary (findings + score).
        - --json or subagent invocation: JSON only, no prose.
 ```
@@ -170,14 +178,19 @@ about whatever framework is actually present rather than matching a fixed rule.
 ```
 id             stable key, e.g. perf_n_plus_one       (also the SARIF ruleId + compliance key)
 label          short human label
-intent         what this checks and WHY it matters     (framework-agnostic)
+intent         what this checks and WHY it matters     (framework-agnostic, 1 line)
 applies_to     archetypes/stacks where relevant; else auto-status "skipped"
-detection_hints example patterns/signals (NON-exhaustive) the agent uses as illustrations
-criteria       when to mark pass / fail / warning / skip
+signals        compact ripgrep/AST patterns to LOCATE candidate file:line (NON-exhaustive)
+criteria       confirm/reject rule for a candidate + when pass/fail/warning/skip (1-2 lines)
 severity       base severity + context modifiers (see 5a.3)
-remediation    concrete fix guidance
+remediation    concrete fix guidance (1 line)
 compliance_refs OWASP/CWE/CIS/ISO refs where applicable (feeds compliance-map.md)
 ```
+
+Items are kept **compact** (no inline prose examples) to bound per-subagent token cost.
+Curated positive/negative code examples live in `shared/detection/examples/NN-*.md` and are
+**loaded on demand only** (progressive disclosure) — the agent reads them only when a
+candidate is genuinely ambiguous, so they cost zero tokens on the common path.
 
 An item whose `applies_to` excludes all of the repo's archetypes is emitted as
 `status: "skipped"` (not counted against the score).
