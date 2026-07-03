@@ -61,7 +61,7 @@ codebase-audit/                    # plugin root
       04-issues.md  05-architecture.md  06-dependencies.md
       07-i18n.md  08-api.md  09-resilience.md  10-container-iac.md
       11-observability.md          # NEW
-    discovery.md                   # stack-detect commands (from draft)
+    discovery.md                   # stack-detect commands + archetype classification (see 5a.1)
     scoring.md                     # ONE score formula + CI-gate rules
     schema.json                    # AuditResult JSON contract (validates every dim)
     compliance-map.md              # checklist_id -> OWASP/CIS/SOC2/PCI controls
@@ -141,6 +141,60 @@ Steps:
 Detection *content* lives in `shared/detection/NN-*.md`; the skill is the *runner*. The same
 spec file drives the standalone skill AND the orchestrator subagent, so the two paths cannot
 diverge. Adding a dimension = one new spec file + a ~15-line skill clone.
+
+## 5a. Genericity & Project Adaptivity
+
+The draft's detection is brittle — patterns hardcoded to specific frameworks
+(e.g. "Django view without `@login_required`"). The suite must be **generic** (work on any
+Python / JS-TS project) and **adaptive** (adjust to project type). Three mechanisms:
+
+### 5a.1 Project archetype classification
+
+Discovery classifies the repo into one or more archetypes:
+
+```
+web-api | frontend-spa | fullstack | cli-tool | library | data-ml | worker-service
+```
+
+Stored on `discovery_context.archetypes[]`. Classification uses entry points, deps, and
+structure (e.g. presence of route/controller dirs -> web-api; `bin`/`__main__`/argparse ->
+cli-tool; published package manifest with no server -> library; React/Vue/Svelte + build ->
+frontend-spa; notebooks/pandas/torch -> data-ml).
+
+### 5a.2 Per-item detection schema (intent-first)
+
+Every checklist item in `shared/detection/NN-*.md` follows this schema. Detection is
+**intent-first**; patterns are **hints, explicitly non-exhaustive**. The audit agent reasons
+about whatever framework is actually present rather than matching a fixed rule.
+
+```
+id             stable key, e.g. perf_n_plus_one       (also the SARIF ruleId + compliance key)
+label          short human label
+intent         what this checks and WHY it matters     (framework-agnostic)
+applies_to     archetypes/stacks where relevant; else auto-status "skipped"
+detection_hints example patterns/signals (NON-exhaustive) the agent uses as illustrations
+criteria       when to mark pass / fail / warning / skip
+severity       base severity + context modifiers (see 5a.3)
+remediation    concrete fix guidance
+compliance_refs OWASP/CWE/CIS/ISO refs where applicable (feeds compliance-map.md)
+```
+
+An item whose `applies_to` excludes all of the repo's archetypes is emitted as
+`status: "skipped"` (not counted against the score).
+
+### 5a.3 Context-aware severity
+
+Base severity can be modified by project maturity/context, supplied via config:
+
+```yaml
+# .codebase-audit.yml
+context:
+  maturity: prototype | internal | production | enterprise   # default: production
+```
+
+Example: `sec_auth_failures` (no rate limit) = High at `enterprise`/`production`, Low at
+`prototype`/`internal`. Modifiers are declared per-item in the detection spec and applied by
+the audit agent. This keeps one checklist usable from mini projects to enterprise apps.
 
 ## 6. Orchestrator Flow (`codebase-audit`)
 
