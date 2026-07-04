@@ -125,8 +125,11 @@ output, LLM confirms + dedupes. Do not assume a specific framework.
 - **intent:** Catching and discarding exceptions hides bugs and produces silent failures.
   (Distinct from dim9: this is about *hiding* errors, not fault-tolerance strategy.)
 - **applies_to:** all
-- **signals:** `except.*:\s*pass|except.*:\s*\.\.\.|catch\s*\([^)]*\)\s*\{\s*\}|
-  except Exception:\s*pass|catch\s*\{\s*\}`.
+- **signals:** locate handler openings — `except\s*\w*\s*:` / `catch\s*\([^)]*\)\s*\{` /
+  `catch\s*\{` — then read the handler BODY (which may be the NEXT line, not same-line) for
+  `pass` / `...` / empty block. Do NOT require the swallow on the same line as `except`/`catch`
+  (the common bare-except-then-pass form spans two lines). Same-line form
+  `except.*:\s*(pass|\.\.\.)` also matches.
 - **confirm:** fail if an exception is caught and neither handled, logged, nor re-raised.
   pass if logged/handled/re-raised, or an intentional-ignore with a justifying comment.
 - **severity:** Medium (prototype → Low)

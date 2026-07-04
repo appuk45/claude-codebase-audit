@@ -292,6 +292,43 @@ removed before counting.
 **Why counts, not score:** a line-normalized score lets a large repo dilute real High
 findings past a score-based gate. Counts cannot be gamed by adding code.
 
+## 9a. Build-Phase Contract Decisions
+
+Resolved before writing shared assets (else they distort results or drift):
+
+### 9a.1 How skips score
+
+Archetype gating means a dimension (or item) can be fully non-applicable. Rules:
+
+- **A fully-skipped dimension is excluded from the overall-score average and reported as
+  `N/A`** — it does NOT contribute a free 10/10. (Zero findings on an inapplicable dimension
+  must not inflate the headline number.)
+- **Per-dimension `pass_rate` is computed over applicable items only** —
+  `passed / (total − skipped)`. "2 pass, 8 skip" = 100%, not 20%.
+- A dimension with applicable items but zero findings scores normally (up to 10).
+
+### 9a.2 Compliance data — single source
+
+`compliance_refs` inline in each `shared/detection/NN-*.md` item is the **source of truth**.
+`shared/compliance-map.md` is **generated from** those inline refs (a build/derived artifact),
+never hand-maintained in parallel. This preserves the "one source, no drift" principle.
+
+### 9a.3 Canonical status enum
+
+The one allowed set of checklist-item statuses is: **`pass` | `fail` | `warning` | `skipped`**.
+- `schema.json` enforces this enum on every emitted item.
+- All 11 detection specs already emit these values.
+- `phases/html-generate.md` MUST map `skipped` (the draft template matched `"skip"` and fell
+  through to a ⚠️ warning icon — fix it to render `skipped` as ⏭️ and exclude from pass/fail
+  counts). Reconcile the enum across schema + specs + template when building.
+
+### 9a.4 Signals are candidate-locators, validated empirically
+
+Detection `signals` locate candidates; multi-line constructs (e.g. bare `except:` then `pass`
+on the next line) must be found by matching the opening line and reading the body — never
+assume the pattern is single-line. Validate signals against `test-fixture/` before wiring
+skills (this caught a real miss in `issue_error_swallowing`).
+
 ## 10. Testing
 
 - **`test-fixture/`** expanded from the draft: known-bad Python (Django) + JS/TS files, each
