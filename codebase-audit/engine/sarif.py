@@ -28,7 +28,7 @@ def to_sarif(results):
                 "message": {"text": f.get("title", "")},
                 "locations": [{"physicalLocation": physical}],
                 "partialFingerprints": {
-                    "auditFinding": f"{rid}:{f['file']}:{line}",
+                    "auditFinding": f"{rid}:{f['file']}:{line if line is not None else ''}",
                 },
                 "properties": {
                     "severity": f.get("severity"),
