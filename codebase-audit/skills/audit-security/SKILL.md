@@ -13,9 +13,9 @@ Audit the current working directory for the Security dimension.
 
 ## Steps
 
-1. **Discovery**: if `discovery_context` was NOT injected, run `shared/discovery.md` and
+1. **Discovery**: if `discovery_context` was NOT injected, run `${CLAUDE_PLUGIN_ROOT}/shared/discovery.md` and
    build it. If injected, use it as-is (do not re-run discovery).
-2. **Filter**: read `shared/detection/02-security.md`. Drop any checklist item whose
+2. **Filter**: read `${CLAUDE_PLUGIN_ROOT}/shared/detection/02-security.md`. Drop any checklist item whose
    `applies_to` shares no archetype with `discovery_context.archetypes` → emit it with
    `status: "skipped"`.
 3. **Detect (two-stage, spec §5a.2 / §9a.4)**:
@@ -23,8 +23,8 @@ Audit the current working directory for the Security dimension.
       Prefer bandit/semgrep output if available. Do NOT read the whole repo.
    b. Read only candidate snippets; apply each item's `confirm` rule with taint reasoning
       (is the value user-controlled?). Assign severity honoring the High floors.
-      Consult `shared/detection/examples/02-security.md` only when a candidate is ambiguous.
-4. **Emit**: produce one `AuditResult` JSON object conforming to `shared/schema.json` with
+      Consult `${CLAUDE_PLUGIN_ROOT}/shared/detection/examples/02-security.md` only when a candidate is ambiguous.
+4. **Emit**: produce one `AuditResult` JSON object conforming to `${CLAUDE_PLUGIN_ROOT}/shared/schema.json` with
    `audit: "security"`, `iso_characteristic: "Security"`, the checklist (with statuses), and
    findings. Leave `score` as `0` — the engine computes it.
    - With `--json` or as a subagent: output ONLY the JSON.
