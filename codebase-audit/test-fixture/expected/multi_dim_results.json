@@ -1,0 +1,35 @@
+[
+  {
+    "audit": "security", "score": 0, "iso_characteristic": "Security",
+    "archetypes_applied": ["web-api"],
+    "checklist": [
+      {"id": "sec_injection", "label": "No injection", "status": "fail", "affected_count": 1}
+    ],
+    "findings": [
+      {"checklist_id": "sec_injection", "file": "a.py", "line": 5, "severity": "High",
+       "title": "SQL injection", "recommendation": "parameterize"}
+    ]
+  },
+  {
+    "audit": "performance", "score": 0, "iso_characteristic": "Performance Efficiency",
+    "archetypes_applied": ["web-api"],
+    "checklist": [
+      {"id": "perf_pagination", "label": "List endpoints paginated", "status": "warning",
+       "affected_count": 1}
+    ],
+    "findings": [
+      {"checklist_id": "perf_pagination", "file": "a.py", "line": 3, "severity": "Medium",
+       "title": "Unpaginated list endpoint", "recommendation": "add pagination"}
+    ]
+  },
+  {
+    "audit": "i18n", "score": null, "iso_characteristic": "Portability",
+    "archetypes_applied": ["web-api"],
+    "checklist": [
+      {"id": "i18n_hardcoded_strings", "label": "Externalized strings", "status": "skipped",
+       "affected_count": 0},
+      {"id": "i18n_rtl", "label": "RTL support", "status": "skipped", "affected_count": 0}
+    ],
+    "findings": []
+  }
+]

@@ -1,0 +1,6 @@
+__pycache__/
+*.pyc
+.pytest_cache/
+audit-report.md
+audit-report-*.html
+audit-report.sarif

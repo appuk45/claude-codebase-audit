@@ -1,0 +1,11 @@
+{
+  "name": "appuk-codebase-audit",
+  "owner": { "name": "Appu K" },
+  "plugins": [
+    {
+      "name": "codebase-audit",
+      "source": "./codebase-audit",
+      "description": "11-dimension enterprise codebase audit (ISO 25010, OWASP 2025) with SARIF + HTML outputs and a CI gate."
+    }
+  ]
+}

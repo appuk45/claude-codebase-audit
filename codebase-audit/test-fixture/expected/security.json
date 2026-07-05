@@ -1,0 +1,25 @@
+{
+  "audit": "security",
+  "score": 0,
+  "iso_characteristic": "Security",
+  "archetypes_applied": ["web-api"],
+  "checklist": [
+    {"id": "sec_access_control", "label": "Auth guard on sensitive routes", "status": "fail", "affected_count": 1},
+    {"id": "sec_injection", "label": "No injection", "status": "fail", "affected_count": 1},
+    {"id": "sec_hardcoded_secrets", "label": "No secrets in source", "status": "fail", "affected_count": 1}
+  ],
+  "findings": [
+    {"checklist_id": "sec_injection", "file": "test-fixture/bad_views.py", "line": 26,
+     "severity": "High", "title": "SQL injection via string concatenation",
+     "detail": "User input concatenated into SQL.", "recommendation": "Use parameterized queries.",
+     "compliance_refs": ["OWASP A05:2025", "CWE-89"]},
+    {"checklist_id": "sec_hardcoded_secrets", "file": "test-fixture/bad_views.py", "line": 7,
+     "severity": "High", "title": "Hardcoded SECRET_KEY",
+     "detail": "Secret literal in source.", "recommendation": "Load from environment.",
+     "compliance_refs": ["OWASP A04:2025", "CWE-798"]},
+    {"checklist_id": "sec_access_control", "file": "test-fixture/bad_views.py", "line": 19,
+     "severity": "High", "title": "Admin route without auth guard",
+     "detail": "admin_panel has no auth decorator.", "recommendation": "Add auth middleware.",
+     "compliance_refs": ["OWASP A01:2025", "CWE-862"]}
+  ]
+}
