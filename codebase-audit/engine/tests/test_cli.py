@@ -39,3 +39,20 @@ def test_cli_gate_fails_on_high(tmp_path):
     proc, out = _run(tmp_path, gate_cfg=cfg, args=["--ci"])
     assert proc.returncode == 1
     assert "High" in proc.stdout
+
+def test_cli_emits_sarif_and_html(tmp_path):
+    rpath = tmp_path / "results.json"
+    rpath.write_text(json.dumps(RESULTS))
+    md = tmp_path / "r.md"
+    sarif = tmp_path / "r.sarif"
+    htmlf = tmp_path / "r.html"
+    cmd = [sys.executable, "-m", "engine.cli",
+           "--results", str(rpath), "--out", str(md),
+           "--total-lines", "1000", "--formats", "md,sarif,html",
+           "--sarif-out", str(sarif), "--html-out", str(htmlf)]
+    proc = subprocess.run(cmd, cwd=ROOT, capture_output=True, text=True)
+    assert proc.returncode == 0
+    assert md.exists() and sarif.exists() and htmlf.exists()
+    sdoc = json.loads(sarif.read_text())
+    assert sdoc["version"] == "2.1.0"
+    assert htmlf.read_text().startswith("<!DOCTYPE html>")

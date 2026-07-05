@@ -58,16 +58,20 @@ Run a multi-dimension static audit of the current working directory.
       "findings": [], "error": "subagent failed" }`.
 6. **Engine**: run from the plugin directory (so `engine` imports resolve):
    ```bash
-   python -m engine.cli \
-     --results /tmp/codebase-audit-results.json \
-     --out audit-report.md \
-     --total-lines <discovery_context.total_lines> \
-     [--config <path>] [--ci]
+   # local (default): rich HTML dashboard
+   python -m engine.cli --results /tmp/codebase-audit-results.json \
+     --out audit-report.md --formats html,md \
+     --html-out audit-report.html --total-lines <total_lines> [--config <path>]
+
+   # CI (--ci): SARIF + markdown + gate exit code
+   python -m engine.cli --results /tmp/codebase-audit-results.json \
+     --out audit-report.md --formats sarif,md \
+     --sarif-out audit-report.sarif --total-lines <total_lines> [--config <path>] --ci
    ```
    The engine validates, scores (N/A for fully-skipped dims, excluded from the average),
    gates on raw severity counts, and writes `audit-report.md`.
 7. **Report**: print the engine's stdout and the path to `audit-report.md`. In `--ci` mode,
-   propagate the engine's exit code (non-zero = gate breach).
+   propagate the engine's exit code (non-zero = gate breach). Local mode writes audit-report.html; --ci writes audit-report.sarif for code-scanning upload.
 
 Do not compute scores or gate logic yourself — the engine owns that (`shared/scoring.md`).
 Dimensions are independent; dispatch them concurrently for speed.
