@@ -1,6 +1,6 @@
 {
   "name": "codebase-audit",
   "version": "0.1.0",
-  "description": "Multi-dimension enterprise codebase audit: 11 dimension skills + orchestrator, SARIF/CI-gate/HTML, ISO 25010.",
+  "description": "Enterprise codebase audit (ISO 25010). Plan 1: security dimension end-to-end + CI gate + markdown report. Remaining 10 dimensions, SARIF, and HTML dashboard land in later plans.",
   "author": "Appu K"
 }

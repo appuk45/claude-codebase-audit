@@ -14,7 +14,11 @@ def is_fully_skipped(checklist):
 
 
 def dimension_pass_rate(checklist):
-    """Pass rate over APPLICABLE (non-skipped) items only. None if none applicable."""
+    """Pass rate over APPLICABLE (non-skipped) items only. None if none applicable.
+
+    Consumed by the richer reports in later plans (HTML dashboard pass-rate column);
+    kept here as the single source of the applicable-only pass-rate rule (spec 9a.1).
+    """
     applicable = [i for i in checklist if i["status"] != "skipped"]
     if not applicable:
         return None

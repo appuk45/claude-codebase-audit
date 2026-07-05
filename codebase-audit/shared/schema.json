@@ -6,7 +6,7 @@
   "additionalProperties": true,
   "properties": {
     "audit": {"type": "string"},
-    "score": {"type": ["number", "null"]},
+    "score": {"type": ["number", "null"], "description": "Dimension skills set this to 0; the engine recomputes it from findings + total_lines."},
     "iso_characteristic": {"type": "string"},
     "archetypes_applied": {"type": "array", "items": {"type": "string"}},
     "error": {"type": "string"},
