@@ -43,18 +43,27 @@ install them (from the skill's `scripts/requirements.txt`) on first run.
 
 ## 2. Run your first audit
 
-From the root of the repo you want to audit:
-```
-/codebase-audit --all
-```
+From the root of the repo you want to audit, start the skill the way your agent does it:
+
+| Agent | Start the full audit | One dimension |
+|---|---|---|
+| Claude Code, Cursor | `/codebase-audit` | `/audit-security` |
+| Codex | `$codebase-audit` | `$audit-security` |
+| Any other agent (Copilot, Gemini CLI, … — not yet verified) | ask in words: "Run the codebase-audit skill on this repo" | "Run the audit-security skill" |
+
+Then say what to run — in words or flags:
+- "Full audit, all dimensions, no questions" or `--all` → every applicable dimension, no menu.
+- "Audit for CI" or `--ci` → SARIF + markdown + gate exit code.
+- "Audit only security and performance" → just those dimensions.
+- Nothing extra → a menu to pick dimensions (skipped automatically in headless runs).
+
 The orchestrator discovers the stack + archetype, runs each applicable dimension (as parallel
 subagents where your agent supports them, otherwise one after another), and writes `audit-report.html` (open it in a browser) and `audit-report.md`.
 
-Run a single dimension standalone:
-```
-/audit-security
-/audit-performance
-```
+Run a single dimension standalone by calling it by name (`/audit-security`,
+`$audit-performance`, …). The 11 dimension skills are **explicit-only** in Claude Code and
+Cursor (`disable-model-invocation: true`): the agent never starts them on its own, so
+everyday requests don't trigger a repository-wide scan. Other agents may ignore that setting.
 
 ## 3. Read the HTML dashboard
 
@@ -69,6 +78,7 @@ Run a single dimension standalone:
 
 Place this file in the audited repo's root:
 ```yaml
+mode: interactive             # interactive | all | ci — e.g. `ci` for pipelines, same in every agent
 dimensions: [security, performance, dependencies]   # omit for all applicable
 context:
   maturity: production        # prototype | internal | production | enterprise

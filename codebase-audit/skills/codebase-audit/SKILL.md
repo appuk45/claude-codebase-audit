@@ -1,6 +1,6 @@
 ---
 name: codebase-audit
-description: Orchestrates the 11-dimension codebase audit (ISO/IEC 25010, OWASP 2025) — discovery, dimension selection, parallel or sequential dimension runs, deterministic scoring and CI gate, and Markdown/SARIF/HTML reports. Use when asked to audit a codebase or run /codebase-audit.
+description: "Static, multi-dimension audit of a whole repository across 11 ISO/IEC 25010 quality dimensions — security (OWASP Top 10:2025), performance, architecture, dependencies and supply chain, resilience, observability, API design, i18n, maintainability, enterprise readiness, containers/IaC — with a deterministic score, CI gate and Markdown/SARIF/HTML reports. Use when asked to audit, assess or scan a codebase or repository (all dimensions or a chosen few), to produce a code-quality or security audit report, or to run codebase-audit. Not for reviewing a single file, function or pull-request diff, and not for answering questions about how the audit works."
 compatibility: Requires a POSIX shell (bash/zsh; Git Bash or WSL on Windows) and Python 3.11+ with jsonschema and PyYAML (scripts/requirements.txt). ripgrep recommended. Works in any Agent Skills client (Claude Code, Codex, Cursor, GitHub Copilot, ...).
 ---
 
@@ -8,12 +8,40 @@ compatibility: Requires a POSIX shell (bash/zsh; Git Bash or WSL on Windows) and
 
 Run a multi-dimension static audit of the current working directory.
 
+Start it however your agent invokes skills — `/codebase-audit` (Claude Code, Cursor),
+`$codebase-audit` (Codex), or in plain language ("audit this repo, all dimensions"). Flags are
+optional shorthand; see **Choosing what to run**.
+
 ```
 /codebase-audit            # show the dimension menu
 /codebase-audit --all      # run all applicable dimensions, no menu
 /codebase-audit --ci       # non-interactive: all applicable dims, gate + exit code
 /codebase-audit --config PATH
 ```
+
+## Choosing what to run
+
+Decide three things — **dimensions**, **mode** (`interactive` | `all` | `ci`) and **config
+path** — from these sources, highest priority first:
+
+1. **The user's request**, in words or flags:
+   | Request says | Means |
+   |---|---|
+   | "full", "everything", "all dimensions", `--all` | mode `all` |
+   | "for CI", "non-interactive", "pipeline", `--ci` | mode `ci` |
+   | "no questions", "don't ask", "just run it" | mode `all` (or `ci` if CI is mentioned) |
+   | names dimensions, e.g. "only security and performance" | exactly those dimensions |
+   | `--config PATH`, "use config X" | that config file |
+2. **`.codebase-audit.yml`** (or the given config): `mode`, `dimensions`.
+3. **Defaults**: mode `interactive`, all dimensions offered in the menu.
+
+Dimension names map to audit keys: security, performance, enterprise (readiness), issues
+(maintainability), architecture, dependencies (supply chain), i18n (internationalization),
+api, resilience, container_iac (Docker/Kubernetes/Terraform), observability (logging).
+
+**Never wait for an answer that cannot come.** If you cannot ask the user — a headless or
+non-interactive run, a CI job, or the user said not to ask — treat mode `interactive` as
+`all`: skip the menu and run every applicable dimension (or the ones named).
 
 ## Paths
 
@@ -44,20 +72,21 @@ Each spec has on-demand examples at `references/detection/examples/<same file na
 
 ## Steps
 
-1. **Config**: if `--config` is given or `.codebase-audit.yml` exists in `AUDIT_CWD`, load it
-   (format: `references/config-schema.md`). Read `dimensions`, `context.maturity`, `ignore`,
-   `gate`, `suppress`.
+1. **Config**: if a config path was given or `.codebase-audit.yml` exists in `AUDIT_CWD`,
+   load it (format: `references/config-schema.md`). Read `mode`, `dimensions`,
+   `context.maturity`, `ignore`, `gate`, `suppress`. Then settle dimensions and mode per
+   **Choosing what to run**.
 2. **Prepare**: `rm -rf .codebase-audit/results && mkdir -p .codebase-audit/results`
    (in `AUDIT_CWD`). Stale result files must never leak into a new run.
 3. **Discovery**: follow `references/discovery.md` ONCE, in `AUDIT_CWD`. Build
    `discovery_context` (including `archetypes`, `has_iac`, `total_lines`) and write it to
    `.codebase-audit/discovery.json`. Print:
    `Discovered: [languages] | archetypes: [...] | files: [n] | IaC: [yes/no]`.
-4. **Select dimensions**:
-   - If config `dimensions` is set → use it.
-   - Else if `--all`/`--ci` → all 11.
-   - Else → present the menu (numbers 1–11 from the table) and read the user's choice
-     (comma-separated numbers or `all`).
+4. **Select dimensions** (per **Choosing what to run**):
+   - Dimensions named in the request or config → those.
+   - Else mode `all` or `ci` → all 11.
+   - Else (mode `interactive` and you can ask) → present the menu (numbers 1–11 from the
+     table) and read the user's choice (comma-separated numbers or `all`).
    - **Always drop dimension 10 (container_iac) when `discovery_context.has_iac == false`**,
      and note: `Dimension 10 (Container & IaC) skipped — no Dockerfile/Terraform/K8s found`.
    Print: `Running: [selected audit keys]`. Remember this list as `EXPECTED`.
@@ -90,14 +119,14 @@ Each spec has on-demand examples at `references/detection/examples/<same file na
    python3 -c "import jsonschema, yaml" 2>/dev/null || \
      python3 -m pip install -q -r "<SKILL_DIR>/scripts/requirements.txt"
 
-   # Local (default): HTML dashboard + markdown
+   # Modes interactive / all: HTML dashboard + markdown
    python3 "<SKILL_DIR>/scripts/run_engine.py" \
      --results-dir .codebase-audit/results --expect <EXPECTED, comma-separated> \
      --discovery .codebase-audit/discovery.json \
      --out audit-report.md --formats html,md --html-out audit-report.html \
      --total-lines <total_lines> [--config .codebase-audit.yml]
 
-   # CI (--ci): SARIF + markdown + gate exit code
+   # Mode ci: SARIF + markdown + gate exit code
    python3 "<SKILL_DIR>/scripts/run_engine.py" \
      --results-dir .codebase-audit/results --expect <EXPECTED, comma-separated> \
      --out audit-report.md --formats sarif,md --sarif-out audit-report.sarif \
@@ -106,7 +135,7 @@ Each spec has on-demand examples at `references/detection/examples/<same file na
    `--expect` makes the run fail-closed: a selected dimension with no valid result file is
    reported as ERROR (never as a clean 10/10) and, by default, fails the CI gate
    (`gate.fail_on_error`, see `references/config-schema.md`). Always pass `--total-lines`.
-7. **Report**: print the engine's stdout/stderr and the report paths. In `--ci` mode,
+7. **Report**: print the engine's stdout/stderr and the report paths. In mode `ci`,
    propagate the engine's exit code (0 = pass, 1 = gate breach, 2 = invalid input).
 
 Scoring and gate rules: `references/scoring.md`. Compliance mapping:
