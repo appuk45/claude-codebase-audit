@@ -91,6 +91,14 @@ docs/superpowers/plans/                 # the 4 implementation plans (Plan 1-4)
   project-level installs the audit's own engine sits inside the audited repo.
 - **Versions**: `plugin.json` version == `engine.__version__` (test-enforced); the release
   workflow also requires the git tag to match. SARIF `driver.version` reads `__version__`.
+- **Invocation**: only `codebase-audit` may be started by the agent on its own. The 11
+  `audit-*` skills carry `disable-model-invocation: true` (top-level; read by Cursor and Claude
+  Code) — the one field the official `agentskills validate` rejects, deliberately; tests allow
+  exactly this extra field. Descriptions follow *what + "Use when" + "Not for"* (test-enforced).
+- **Mode selection lives in the orchestrator SKILL.md** ("Choosing what to run": request >
+  `.codebase-audit.yml` `mode`/`dimensions` > defaults; never show a menu nobody can answer).
+  The engine only reads `gate`/`suppress`. Behaviour in real agents is checked by hand with
+  `docs/testing/agent-invocation.md` (Cursor first).
 - **Detection specs are intent-first**: `signals` are non-exhaustive candidate locators,
   `confirm` is the decision rule. Security core-vulns keep a High severity floor. Cross-refs
   push overlaps to owning dimensions (no double-counting).
@@ -102,7 +110,7 @@ cd codebase-audit
 pip install -r requirements-dev.txt
 python -m tools.sync_skills             # after editing shared/ (also regenerates compliance-map.md)
 python -m tools.sync_skills --check     # verify copies
-pytest tests -v                         # 73 tests
+pytest tests -v                         # 78 tests
 python -m tools.bump_version 1.2.0      # set the version everywhere (release branches only)
 python -m tools.release_gate --head release/v1.2.0   # what the release-gate check runs
 # manual engine run (any cwd):

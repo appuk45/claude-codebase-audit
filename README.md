@@ -79,12 +79,25 @@ then `/plugin install codebase-audit`.
 
 ## Usage
 
+| Agent | Start the full audit | One dimension |
+|---|---|---|
+| Claude Code, Cursor | `/codebase-audit` | `/audit-security` |
+| Codex | `$codebase-audit` | `$audit-security` |
+| Any other agent (Copilot, Gemini CLI, … — not yet verified) | ask in words: "Run the codebase-audit skill on this repo" | "Run the audit-security skill" |
+
+You can also just ask — "audit this codebase" starts `codebase-audit`. Say what you want in
+words or flags:
+
 ```
-/codebase-audit            # menu — pick dimensions to run
-/codebase-audit --all      # all applicable dimensions
-/codebase-audit --ci       # non-interactive: SARIF + markdown + gate exit code
-/audit-security            # run a single dimension standalone
+/codebase-audit                                # menu — pick dimensions to run
+/codebase-audit --all     ("full audit, all dimensions, no questions")
+/codebase-audit --ci      ("audit for CI")  — SARIF + markdown + gate exit code
+"audit only security and performance"          # just those dimensions
 ```
+
+The 11 single-dimension skills (`audit-*`) only run when you call them by name (in Claude Code
+and Cursor; other agents may ignore that setting), so everyday requests like "review this
+function" never start a repository-wide audit. Headless runs never wait on the menu.
 
 See **USAGE.md** for a full walkthrough, config, and CI integration.
 

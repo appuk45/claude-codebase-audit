@@ -65,3 +65,45 @@ def test_generated_copies_in_sync_with_shared():
 def test_versions_agree():
     plugin = json.loads((ROOT / ".claude-plugin" / "plugin.json").read_text())
     assert plugin["version"] == __version__
+
+
+# --- Invocation contract (docs/superpowers/specs/2026-11-11-agent-invocation-design.md) ---
+
+STANDARD_FIELDS = {"name", "description", "license", "compatibility", "metadata", "allowed-tools"}
+# The one deliberate deviation from the Agent Skills validator: read by Cursor and Claude Code
+# to make a skill explicit-only. It must stay top-level (they do not read it under metadata).
+ALLOWED_EXTRA_FIELDS = {"disable-model-invocation"}
+
+
+def test_descriptions_say_when_and_when_not_to_use():
+    for path in SKILLS:
+        fm, _ = _frontmatter(path)
+        assert "Use when" in fm["description"], path
+        assert "Not for" in fm["description"], path
+
+
+def test_only_codebase_audit_is_model_invocable():
+    for path in SKILLS:
+        fm, _ = _frontmatter(path)
+        if path.parent.name == "codebase-audit":
+            assert "disable-model-invocation" not in fm, "orchestrator must stay auto-invocable"
+        else:
+            assert fm.get("disable-model-invocation") is True, f"{path.parent.name} must be explicit-only"
+
+
+def test_no_unknown_frontmatter_fields():
+    for path in SKILLS:
+        fm, _ = _frontmatter(path)
+        extra = set(fm) - STANDARD_FIELDS - ALLOWED_EXTRA_FIELDS
+        assert not extra, f"{path.parent.name}: unexpected frontmatter {sorted(extra)}"
+
+
+def test_orchestrator_never_blocks_on_a_menu_it_cannot_show():
+    _, body = _frontmatter(ROOT / "skills" / "codebase-audit" / "SKILL.md")
+    assert "## Choosing what to run" in body
+    assert "Never wait for an answer that cannot come" in body
+
+
+def test_config_schema_documents_mode():
+    text = (ROOT / "shared" / "config-schema.md").read_text(encoding="utf-8")
+    assert "mode:" in text and "interactive" in text and "ci" in text

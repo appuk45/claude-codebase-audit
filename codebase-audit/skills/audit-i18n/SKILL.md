@@ -1,6 +1,7 @@
 ---
 name: audit-i18n
-description: Internationalization dimension audit — emits AuditResult JSON; runs standalone or as an orchestrator subagent.
+description: "Static whole-repository internationalization audit, one dimension of codebase-audit — checks text encoding, time-zone handling, hard-coded user-facing strings, localization readiness. Use when the user explicitly asks to audit or scan the repository for internationalization only, or invokes /audit-i18n. Not for reviewing a single file, function or diff. Normally run by the codebase-audit skill as part of a full audit; emits AuditResult JSON."
+disable-model-invocation: true
 compatibility: Requires a POSIX shell (bash/zsh; Git Bash or WSL on Windows). ripgrep recommended. Works in any Agent Skills client (Claude Code, Codex, Cursor, GitHub Copilot, ...).
 ---
 
@@ -16,7 +17,7 @@ commands in the repository being audited (the current working directory).
 - Optional `discovery_context` (JSON) injected by the orchestrator.
 - Optional output path (from the orchestrator): write the JSON there instead of
   printing it.
-- Flags: `--json` (emit JSON only, no markdown summary).
+- `--json`, or a request for JSON only: emit only the JSON, no markdown summary.
 
 ## Steps
 
@@ -36,7 +37,8 @@ commands in the repository being audited (the current working directory).
    statuses), and findings. Leave `score` as `0` — the engine computes it.
    - If an output path was given: write ONLY the JSON object to it (UTF-8), then reply
      with one line: `<audit key>: <n> findings -> <path>`.
-   - With `--json` or as a subagent without an output path: output ONLY the JSON.
+   - With `--json`, when asked for JSON only, or as a subagent without an output path:
+     output ONLY the JSON.
    - Standalone: also print a short markdown summary (counts + top findings).
 
 When invoked as a subagent, return only valid JSON — or, when an output path was
