@@ -11,20 +11,25 @@ For every change, no matter how small it looks:
 1. **Brainstorm** — discuss options, trade-offs and open questions. No file changes.
 2. **Spec** — write a short spec (goal, decisions, scope, out of scope). Wait for approval.
 3. **Plan** — list the steps and files they touch. Wait for approval.
-4. **Execute** — only after the plan is approved, and only on a work branch (never `main`).
+4. **Execute** — only after the plan is approved, and only on a work branch (never `main`
+   or `dev` directly).
 
 A question from the owner ("what is your suggestion?") is not approval to implement.
 
-**Branch naming** — every new piece of work gets its own branch with one of these prefixes:
+**Branch flow** — `work branch → dev → release/vX.Y.Z → main`; merging into `main` auto-tags
+`vX.Y.Z` (full checklists: `RELEASING.md`).
 
-| Prefix | Use for |
-|---|---|
-| `feature/<name>` | new features |
-| `fix/<name>` | bug fixes |
-| `refactor/<name>` | restructuring without behaviour change |
-| `chore/<name>` | maintenance: docs, dependencies, CI, tooling |
+| Branch | Use for | Created from | PR into |
+|---|---|---|---|
+| `feature/<name>` | new features | `dev` | `dev` |
+| `fix/<name>` | bug fixes | `dev` (hotfix: `main`) | `dev` (hotfix: `main`) |
+| `refactor/<name>` | restructuring without behaviour change | `dev` | `dev` |
+| `chore/<name>` | maintenance: docs, dependencies, CI, tooling | `dev` | `dev` |
+| `release/vX.Y.Z` | preparing a release (version bump, stabilisation) | `dev` | `main` |
 
-Use short kebab-case names, e.g. `fix/fail-open-gate`, `chore/update-docs`.
+Use short kebab-case names, e.g. `fix/fail-open-gate`, `chore/update-docs`. Squash is fine
+into `dev`; `dev → release`, `release → main` and the `main → dev` back-merge are **merge
+commits only**. Never create, move or delete `v*` tags by hand.
 
 ## Repo layout
 
@@ -41,11 +46,14 @@ codebase-audit/                         # plugin root (also what `npx skills` di
     codebase-audit/scripts/requirements.txt
   shared/                               # SOURCE OF TRUTH (not shipped): detection/NN-*.md (+examples), discovery, scoring, schema, config-schema
     compliance-map.md                   # GENERATED from inline compliance_refs (do not hand-edit)
-  tools/                                # dev-only: sync_skills.py (copies shared -> skills), compliance.py
+  tools/                                # dev-only: sync_skills.py (shared -> skills), compliance.py,
+                                        #   bump_version.py, release_gate.py, versioning.py
   tests/                                # pytest: engine, fail-closed gate, packaging contract
   test-fixture/ + expected/             # planted-vuln fixtures + expected results
 .claude-plugin/marketplace.json         # repo-root marketplace listing (source: ./codebase-audit)
-.github/workflows/ci.yml release.yml    # tests + sync check + npx-skills install smoke; tag -> GitHub release
+.github/workflows/                     # ci.yml (tests, sync check, npx-skills install smoke),
+                                        # release-gate.yml (PRs into main), release.yml (push to main -> tag + release)
+RELEASING.md                            # release + hotfix checklists, merge rules, GitHub rulesets
 README.md USAGE.md                      # user docs
 docs/superpowers/specs/                 # the design spec (single source of design decisions; §13 = tool-agnostic)
 docs/superpowers/plans/                 # the 4 implementation plans (Plan 1-4)
@@ -94,7 +102,9 @@ cd codebase-audit
 pip install -r requirements-dev.txt
 python -m tools.sync_skills             # after editing shared/ (also regenerates compliance-map.md)
 python -m tools.sync_skills --check     # verify copies
-pytest tests -v                         # 48 tests
+pytest tests -v                         # 72 tests
+python -m tools.bump_version 1.2.0      # set the version everywhere (release branches only)
+python -m tools.release_gate --head release/v1.2.0   # what the release-gate check runs
 # manual engine run (any cwd):
 python3 skills/codebase-audit/scripts/run_engine.py --results-dir R --expect security,api \
   --out report.md --formats html,md,sarif --total-lines 1000 [--ci]
@@ -106,8 +116,10 @@ npx -y skills@1.7.6 add /path/to/claude-codebase-audit -a codex -y
 
 - **v1.0.0**: 11 dimension skills + orchestrator + engine, Claude Code plugin only. Merged to
   `main` via PRs #1–#4.
-- **v1.1.0** (branch `feature/tool-agnostic-agent-skills`, not yet merged): tool-agnostic Agent Skills layout, `npx skills` install with
-  pinned tags, fail-closed gate for errored dimensions, CI + release workflows.
+- **v1.1.0** (merged to `dev` via PR #5, not yet released): tool-agnostic Agent Skills
+  layout, `npx skills` install with pinned tags, fail-closed gate for errored dimensions,
+  CI workflows. Release flow (dev → release/vX.Y.Z → main, auto-tag) added on
+  `chore/release-flow`.
 - **Known gaps**: detection accuracy is unmeasured (no test runs an LLM against the fixture);
   the line-normalized display score barely moves on large repos; only Python + JS/TS specs;
   Windows needs Git Bash/WSL (discovery is POSIX shell).
