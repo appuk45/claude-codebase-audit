@@ -4,6 +4,17 @@ Context for continuing work on this repo. The deliverable is a **tool-agnostic A
 bundle** (installable with `npx skills add`, and still as a Claude Code plugin) that audits
 any codebase across 11 ISO/IEC 25010 dimensions and emits Markdown, SARIF, and HTML.
 
+## Workflow rule (from the repo owner — always follow)
+
+For every change, no matter how small it looks:
+
+1. **Brainstorm** — discuss options, trade-offs and open questions. No file changes.
+2. **Spec** — write a short spec (goal, decisions, scope, out of scope). Wait for approval.
+3. **Plan** — list the steps and files they touch. Wait for approval.
+4. **Execute** — only after the plan is approved, and only on a feature branch (never `main`).
+
+A question from the owner ("what is your suggestion?") is not approval to implement.
+
 ## Repo layout
 
 ```
