@@ -122,12 +122,10 @@ python -m tools.sync_skills --check  # CI: copies must match shared/
 pytest tests -v
 ```
 
-## Releasing (pinned versions)
+## Branches & releases
 
-1. Bump the version in `codebase-audit/.claude-plugin/plugin.json` and
-   `codebase-audit/skills/codebase-audit/scripts/engine/__init__.py` (a test enforces they match).
-2. Merge to `main`, then tag: `git tag v1.1.0 && git push origin v1.1.0`.
-3. The `release` workflow checks the tag matches both versions, runs the tests, and publishes
-   a GitHub release. Users pin with `npx skills add appuk45/claude-codebase-audit@v1.1.0`.
+Work branches (`feature/`, `fix/`, `refactor/`, `chore/`) start from and merge into `dev`.
+A release goes `dev` → `release/vX.Y.Z` → `main`; merging into `main` automatically tags
+`vX.Y.Z` and publishes a GitHub release. See **RELEASING.md** for the checklists.
 
 Scoring/gate rules: `shared/scoring.md`. Result contract: `shared/schema.json`.
