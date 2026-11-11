@@ -12,7 +12,8 @@ DOCS = ["README.md", "USAGE.md"]          # relative to the repo root
 
 SEMVER_RE = re.compile(r"^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$")
 ENGINE_RE = re.compile(r'^__version__ = "([^"]*)"$', re.M)
-PIN_RE = re.compile(r"(claude-codebase-audit@v)\d+\.\d+\.\d+")
+# Pinned-install example in the docs: .../claude-codebase-audit/tree/vX.Y.Z
+PIN_RE = re.compile(r"(claude-codebase-audit/tree/v)\d+\.\d+\.\d+")
 
 
 def parse(version):

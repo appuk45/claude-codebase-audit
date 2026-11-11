@@ -48,18 +48,26 @@ dashboard**.
 
 ## Install (any agent)
 
-Pinned to a release (recommended — reproducible, auditable):
+Latest release:
 
 ```bash
-npx skills add appuk45/claude-codebase-audit@v1.1.0
+npx skills add appuk45/claude-codebase-audit
+```
+
+A specific version (recommended for teams and CI — reproducible, auditable). Versions are
+listed on the [Releases](https://github.com/appuk45/claude-codebase-audit/releases) page:
+
+```bash
+npx skills add https://github.com/appuk45/claude-codebase-audit/tree/v1.1.1
 ```
 
 The [`skills`](https://github.com/vercel-labs/skills) CLI detects the coding agents you have
 installed (or asks which ones) and installs all 12 skills into a shared `.agents/skills/`
-folder, symlinked for each agent. Pick agents explicitly with `-a`, install user-wide with `-g`:
+folder, symlinked for each agent. Pick agents explicitly with `-a`, install user-wide with `-g`
+(works with either command above):
 
 ```bash
-npx skills add appuk45/claude-codebase-audit@v1.1.0 -a claude-code -a codex -a cursor -a github-copilot
+npx skills add appuk45/claude-codebase-audit -a claude-code -a codex -a cursor -a github-copilot
 ```
 
 Install all 12 skills — the orchestrator dispatches dimensions itself, but standalone

@@ -1,10 +1,14 @@
 # Releasing codebase-audit
 
-Users install a pinned version with:
+Users install the latest release (whatever is on `main`) or pin a version:
 
 ```bash
-npx skills add appuk45/claude-codebase-audit@vX.Y.Z
+npx skills add appuk45/claude-codebase-audit                                   # latest
+npx skills add https://github.com/appuk45/claude-codebase-audit/tree/vX.Y.Z    # pinned
 ```
+
+Because an unpinned install takes `main`, **only releases may ever reach `main`** — that is
+what the `main` ruleset below enforces.
 
 A tag is created **automatically** when a release or hotfix is merged into `main`. Never
 create, move, or delete a `v*` tag by hand — a pinned version must never change.
@@ -43,7 +47,8 @@ commit IDs for the same content, so the next release PR re-shows old commits and
    not match the version, or a version not higher than the latest tag.
 5. Merge with **Create a merge commit**.
 6. The `release` workflow runs on `main`: checks the tag is new, runs the tests, creates tag
-   `v1.2.0` and a GitHub release with generated notes. Check it went green.
+   `v1.2.0` and a GitHub release with generated notes, then installs the new tag from GitHub
+   with the pinned URL and checks the files and lockfile. Check it went green.
 7. Back-merge: open a PR `main` → `dev`, merge with a merge commit.
 8. Delete `release/v1.2.0`.
 
@@ -52,7 +57,9 @@ commit IDs for the same content, so the next release PR re-shows old commits and
 1. `git switch main && git pull && git switch -c fix/<name>`
 2. Fix, then bump the **patch** version: `python -m tools.bump_version 1.2.1`.
 3. PR `fix/<name>` → `main`; merge with a merge commit → tag `v1.2.1` is created.
-4. Back-merge `main` → `dev` (merge commit); delete the fix branch.
+4. Back-merge `main` → `dev` (merge commit); delete the fix branch. If a back-merge PR
+   `main` → `dev` is already open, it picks up the hotfix by itself (its source is `main`), so
+   merge that one instead of opening another.
 
 ## If the release workflow fails
 
@@ -60,6 +67,8 @@ commit IDs for the same content, so the next release PR re-shows old commits and
   version on a `fix/*` branch and merge it as a hotfix.
 - **Tests or sync check fail** — nothing was tagged (the tag is created last). Fix on a
   `fix/*` branch from `main` and merge it; that run creates the tag.
+- **"Verify the published tag installs" fails** — the release is already public but the
+  pinned install from GitHub is broken. Fix it as a hotfix (`fix/*` from `main`, patch bump).
 
 ## GitHub settings (owner applies these once)
 
