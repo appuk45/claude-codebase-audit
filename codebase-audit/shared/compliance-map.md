@@ -1,6 +1,6 @@
 # Compliance Map
 
-Generated from the detection specs' inline `compliance_refs` (source of truth — do not hand-edit). Regenerate: `python -m engine.compliance`.
+Generated from the detection specs' inline `compliance_refs` (source of truth — do not hand-edit). Regenerate: `python -m tools.sync_skills`.
 
 | checklist_id | controls |
 |---|---|

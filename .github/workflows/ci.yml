@@ -1,0 +1,70 @@
+name: ci
+
+on:
+  push:
+    branches: [main, dev, "release/**"]
+  pull_request:
+    branches: [main, dev, "release/**"]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.11", "3.12", "3.13"]
+    defaults:
+      run:
+        working-directory: codebase-audit
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - run: pip install -r requirements-dev.txt
+      - name: Skill copies in sync with shared/
+        run: python -m tools.sync_skills --check
+      - run: python -m pytest tests -v
+
+  install-smoke:
+    # Installs the skills exactly as a user would (pinned skills CLI) and runs the
+    # engine from the installed copy. Catches files that would not ship.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r codebase-audit/skills/codebase-audit/scripts/requirements.txt
+      - name: Install with npx skills into a scratch project
+        run: |
+          mkdir -p "$RUNNER_TEMP/proj" && cd "$RUNNER_TEMP/proj" && git init -q
+          npx -y skills@1.7.6 add "$GITHUB_WORKSPACE" \
+            -a claude-code -a codex -a cursor -a github-copilot -y
+          test -f .agents/skills/codebase-audit/scripts/run_engine.py
+          for s in performance security enterprise issues architecture dependencies \
+                   i18n api resilience container-iac observability; do
+            test -f ".agents/skills/audit-$s/SKILL.md"
+            ls .agents/skills/audit-$s/references/detection/*.md >/dev/null
+          done
+          test -L .claude/skills/codebase-audit || test -d .claude/skills/codebase-audit
+      - name: Run the installed engine
+        run: |
+          cd "$RUNNER_TEMP/proj"
+          python3 .agents/skills/codebase-audit/scripts/run_engine.py --version
+          mkdir -p r
+          python3 - <<'PY'
+          import json, os
+          src = os.path.join(os.environ["GITHUB_WORKSPACE"],
+                             "codebase-audit/test-fixture/expected/multi_dim_results.json")
+          for r in json.load(open(src)):
+              json.dump(r, open(f"r/{r['audit']}.json", "w"))
+          PY
+          python3 .agents/skills/codebase-audit/scripts/run_engine.py --results-dir r \
+            --out audit-report.md --formats md,sarif,html --total-lines 1000
+          test -s audit-report.md && test -s audit-report.sarif && test -s audit-report.html

@@ -15,8 +15,8 @@ Django/Express.
 3. Read ONLY candidate snippets. Apply `confirm`. Ignore test/dev-only files
    (`tests/`, `conftest.py`, `*.dev.*`, `docker-compose.override`) for prod-readiness verdicts.
 4. Assign `severity` with maturity modifiers.
-5. Consult `examples/03-enterprise.md` only when ambiguous.
-6. Emit `AuditResult` JSON per `shared/schema.json`. Score per `shared/scoring.md`.
+5. Consult `references/detection/examples/03-enterprise.md` only when ambiguous.
+6. Emit `AuditResult` JSON per `references/schema.json`. Score per `references/scoring.md`.
 
 ---
 

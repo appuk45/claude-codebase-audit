@@ -15,8 +15,8 @@
    - gRPC → proto contracts, gRPC status codes, backward-compatible proto evolution.
 3. Locate route/schema definitions, read them, apply `confirm`.
 4. Assign `severity` with maturity modifiers. status-codes/error-format/idempotency hold.
-5. Consult `examples/08-api.md` only when ambiguous.
-6. Emit `AuditResult` JSON per `shared/schema.json`. Score per `shared/scoring.md`.
+5. Consult `references/detection/examples/08-api.md` only when ambiguous.
+6. Emit `AuditResult` JSON per `references/schema.json`. Score per `references/scoring.md`.
 
 ---
 

@@ -11,8 +11,8 @@ service. A single-process app with no external deps → most items `skipped`.
    drivers, message queues, third-party SDKs. If none → skip most of this dimension.
 2. Run `signals` to locate those call sites; read the surrounding code to judge protection.
 3. Apply `confirm`. Assign `severity` with maturity modifiers. `res_timeouts` holds Medium.
-4. Consult `examples/09-resilience.md` only when ambiguous.
-5. Emit `AuditResult` JSON per `shared/schema.json`. Score per `shared/scoring.md`.
+4. Consult `references/detection/examples/09-resilience.md` only when ambiguous.
+5. Emit `AuditResult` JSON per `references/schema.json`. Score per `references/scoring.md`.
 
 **Distinction from dim 4:** dim 4 `issue_error_swallowing` = catch-and-hide (bug hiding). Here
 `res_fault_handling` = **missing** handling/recovery at a fault-prone dependency boundary.

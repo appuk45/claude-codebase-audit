@@ -2,20 +2,34 @@
 
 ## 1. Install
 
-**Via marketplace:**
+**Any agent, pinned release (recommended):**
+```bash
+npx skills add appuk45/claude-codebase-audit@v1.1.0
+```
+The installer detects your coding agents (Claude Code, Codex, Cursor, GitHub Copilot, Gemini
+CLI, OpenCode, …) or asks which to target. Choose explicitly with `-a`, and use `-g` for a
+user-wide install instead of a per-project one:
+```bash
+npx skills add appuk45/claude-codebase-audit@v1.1.0 -a codex -a cursor -g
+```
+Skills land in `.agents/skills/` (project) and are symlinked into each agent's own folder.
+Commit `skills-lock.json` and run `npx skills check` in CI to catch unreviewed changes.
+To upgrade, re-run `add` with the new tag; `npx skills remove` uninstalls.
+
+**Claude Code plugin marketplace (Claude Code only):**
 ```
 /plugin marketplace add appuk45/claude-codebase-audit
 /plugin install codebase-audit
 ```
 
 **From a local clone** (development / air-gapped):
-```
+```bash
 git clone https://github.com/appuk45/claude-codebase-audit
-/plugin marketplace add ./claude-codebase-audit
-/plugin install codebase-audit
+npx skills add ./claude-codebase-audit
 ```
 
-First run installs the Python deps (`jsonschema`, `PyYAML`) if they are missing.
+The engine needs Python 3.11+ with `jsonschema` and `PyYAML`; the orchestrator offers to
+install them (from the skill's `scripts/requirements.txt`) on first run.
 
 ## 2. Run your first audit
 
@@ -23,8 +37,8 @@ From the root of the repo you want to audit:
 ```
 /codebase-audit --all
 ```
-The orchestrator discovers the stack + archetype, runs each applicable dimension as a parallel
-subagent, and writes `audit-report.html` (open it in a browser) and `audit-report.md`.
+The orchestrator discovers the stack + archetype, runs each applicable dimension (as parallel
+subagents where your agent supports them, otherwise one after another), and writes `audit-report.html` (open it in a browser) and `audit-report.md`.
 
 Run a single dimension standalone:
 ```
@@ -55,6 +69,7 @@ gate:
   max_high: 0                 # fail if any High finding
   max_medium: 10
   max_low: null               # null = ignore
+  fail_on_error: true         # a dimension that did not run fails the gate (default)
 suppress:
   - sec_weak_crypto@legacy/old_hash.py
 ```
@@ -74,7 +89,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      # ... run `/codebase-audit --ci` via your Claude Code CI runner ...
+      # ... install the pinned skills, then run `/codebase-audit --ci` through your
+      #     agent's headless mode (e.g. `claude -p`, `codex exec`) ...
       - name: Upload SARIF
         if: always()                       # upload even when the gate fails
         uses: github/codeql-action/upload-sarif@v3
@@ -89,10 +105,16 @@ The gate compares **raw severity counts** across all dimensions to `gate.*` thre
 (`null` = ignore). It deliberately does NOT gate on the 0-10 score, which a large repo could
 dilute. Suppressions (`checklist_id@file`) are removed before counting.
 
+A selected dimension that produced no valid result (subagent crash, invalid JSON) is shown as
+**ERROR** — never as a clean 10/10 — and fails the gate unless `gate.fail_on_error: false`.
+Exit codes: `0` pass, `1` gate breach, `2` invalid input.
+
 ## 7. Troubleshooting
 
-- **"No module named engine"** — the orchestrator runs the engine from the plugin root; if you
-  invoke it manually, `cd` into the plugin directory first.
-- **Missing Python deps** — `pip install -r requirements.txt` inside the plugin directory.
+- **Missing Python deps** — `python3 -m pip install -r <skill-dir>/scripts/requirements.txt`,
+  where `<skill-dir>` is the installed `codebase-audit` skill (e.g. `.agents/skills/codebase-audit`).
+- **A dimension shows ERROR** — its result file in `.codebase-audit/results/` was missing or
+  invalid. Re-run that dimension; the engine's stderr names the reason.
+- **Working files** — runs write to `.codebase-audit/` in the audited repo; add it to `.gitignore`.
 - **A dimension shows all `skipped`** — it doesn't apply to this project archetype (e.g.
   Container & IaC with no Dockerfile). That's expected; it is excluded from the overall score.

@@ -1,0 +1,47 @@
+name: release
+
+# Every push to main is a release (main only receives release/* and hotfix merges).
+# This job creates the vX.Y.Z tag and GitHub release itself: a tag pushed by a workflow
+# cannot trigger another workflow. Users then pin with:
+#   npx skills add appuk45/claude-codebase-audit@vX.Y.Z
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0          # full history + tags
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install dev requirements
+        working-directory: codebase-audit
+        run: pip install -r requirements-dev.txt
+      - name: Release rules (versions agree, tag is new and higher)
+        id: gate
+        working-directory: codebase-audit
+        run: python -m tools.release_gate --release
+      - name: Skill copies in sync with shared/
+        working-directory: codebase-audit
+        run: python -m tools.sync_skills --check
+      - name: Test
+        working-directory: codebase-audit
+        run: python -m pytest tests -q
+      - name: Create tag and GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.gate.outputs.tag }}
+        run: |
+          gh release create "$TAG" --target "$GITHUB_SHA" --generate-notes \
+            --title "codebase-audit $TAG"

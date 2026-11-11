@@ -13,8 +13,8 @@ inferred from static signals, not measured.
    candidate `file:line` list. Prefer external-tool output (radon, eslint) where noted.
 3. Read ONLY the candidate snippets. Apply `confirm` to keep/drop each candidate.
 4. Assign `severity`, applying context modifiers from `discovery_context.context.maturity`.
-5. Consult `examples/01-performance.md` ONLY when a candidate is ambiguous.
-6. Emit `AuditResult` JSON per `shared/schema.json`. Score per `shared/scoring.md`.
+5. Consult `references/detection/examples/01-performance.md` ONLY when a candidate is ambiguous.
+6. Emit `AuditResult` JSON per `references/schema.json`. Score per `references/scoring.md`.
 
 `signals` are NON-exhaustive candidate-locators — not the pass/fail rule. `confirm` is the
 rule. Reason about the actual framework; do not assume Django/Express.

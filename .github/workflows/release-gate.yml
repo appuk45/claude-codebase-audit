@@ -1,0 +1,26 @@
+name: release-gate
+
+# Required check on PRs into main: only release/vX.Y.Z or fix/* (hotfix) branches,
+# with a version higher than the latest tag. See RELEASING.md.
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  release-gate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0          # full history + tags, to find the latest release
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Check release rules
+        working-directory: codebase-audit
+        env:
+          HEAD_REF: ${{ github.head_ref }}
+        run: python -m tools.release_gate --head "$HEAD_REF"
