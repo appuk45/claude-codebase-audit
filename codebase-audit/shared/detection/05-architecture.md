@@ -17,8 +17,8 @@ specific framework.
 3. Detect cycles + layer violations structurally from the map. Then read only the suspect
    boundary files to confirm.
 4. Apply `confirm`. Assign `severity` with maturity modifiers.
-5. Consult `examples/05-architecture.md` only when ambiguous.
-6. Emit `AuditResult` JSON per `shared/schema.json`. Score per `shared/scoring.md`.
+5. Consult `references/detection/examples/05-architecture.md` only when ambiguous.
+6. Emit `AuditResult` JSON per `references/schema.json`. Score per `references/scoring.md`.
 
 This dimension is NOT line-pattern driven — reason about the graph, not regex hits.
 

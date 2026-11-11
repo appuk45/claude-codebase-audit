@@ -15,8 +15,8 @@ Django/Express — reason about the actual framework.
    body, headers, path) before confirming. Apply `confirm`.
 4. Assign `severity` with maturity modifiers. **Core-vuln items have a High floor** — do NOT
    downgrade them below High regardless of maturity (marked "floor:High").
-5. Consult `examples/02-security.md` only when a candidate is ambiguous.
-6. Emit `AuditResult` JSON per `shared/schema.json`. Score per `shared/scoring.md`.
+5. Consult `references/detection/examples/02-security.md` only when a candidate is ambiguous.
+6. Emit `AuditResult` JSON per `references/schema.json`. Score per `references/scoring.md`.
 
 `signals` locate candidates; `confirm` (with taint reasoning) is the decision.
 

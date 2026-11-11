@@ -11,8 +11,8 @@
    Multi-service items (correlation IDs, tracing) skip for a single-service app.
 2. Run `signals` to locate logging/telemetry sites; read them to judge quality.
 3. Apply `confirm`. Assign `severity`. `obs_pii_in_logs` holds High.
-4. Consult `examples/11-observability.md` only when ambiguous.
-5. Emit `AuditResult` JSON per `shared/schema.json`. Score per `shared/scoring.md`.
+4. Consult `references/detection/examples/11-observability.md` only when ambiguous.
+5. Emit `AuditResult` JSON per `references/schema.json`. Score per `references/scoring.md`.
 
 **Boundary:** error responses leaking stacks to clients → dim 2; error swallowing → dim 4;
 missing fault handling → dim 9; health-check endpoints → dim 3. Here = logs/metrics/traces.

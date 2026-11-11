@@ -17,8 +17,8 @@ output, LLM confirms + dedupes. Do not assume a specific framework.
    `issues.function_loc_max` default 60, `issues.file_loc_max` default 400,
    `issues.nesting_max` default 4). Use these unless overridden.
 5. Assign `severity` with maturity modifiers.
-6. Consult `examples/04-issues.md` only when ambiguous.
-7. Emit `AuditResult` JSON per `shared/schema.json`. Score per `shared/scoring.md`.
+6. Consult `references/detection/examples/04-issues.md` only when ambiguous.
+7. Emit `AuditResult` JSON per `references/schema.json`. Score per `references/scoring.md`.
 
 **Exclude from all items:** generated/vendored files (`migrations/`, `node_modules/`,
 `dist/`, `build/`, `*_pb2.py`, `*.generated.*`, minified files).
