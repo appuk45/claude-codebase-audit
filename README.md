@@ -1,6 +1,8 @@
 # codebase-audit
 
-An enterprise-grade, multi-dimension **codebase audit** plugin for Claude Code. It statically
+An enterprise-grade, multi-dimension **codebase audit** for AI coding agents — Claude Code,
+Codex, Cursor, GitHub Copilot and any other client that supports the open
+[Agent Skills](https://github.com/agentskills/agentskills) standard. It statically
 audits a repository across **11 ISO/IEC 25010 dimensions**, adapts to the project type, and
 produces a Markdown report, **SARIF 2.1.0** for CI code-scanning, and a self-contained **HTML
 dashboard**.
@@ -36,22 +38,36 @@ dashboard**.
 
 ## Requirements
 
-- Claude Code with plugin support.
-- Python 3.11+ with `jsonschema` and `PyYAML` (`pip install -r requirements.txt`). The
-  orchestrator installs these automatically on first run if missing.
+- An Agent Skills client: Claude Code, Codex, Cursor, GitHub Copilot, Gemini CLI, OpenCode, …
+- A POSIX shell (bash/zsh; Git Bash or WSL on Windows).
+- Python 3.11+ with `jsonschema` and `PyYAML` (for the scoring/report engine). The
+  orchestrator offers to install them on first run if missing.
+- Node.js 22.20+ only for the `npx skills` installer.
 - Optional external tools (auto-used if present): `ripgrep`, `bandit`, `semgrep`, `radon`,
   `eslint`, `npm audit`, `pip-audit`, `osv-scanner`, `gitleaks`, `trivy`, `checkov`, `hadolint`.
 
-## Install
+## Install (any agent)
 
-Add this repository as a plugin marketplace, then install:
+Pinned to a release (recommended — reproducible, auditable):
 
+```bash
+npx skills add appuk45/claude-codebase-audit@v1.1.0
 ```
-/plugin marketplace add appuk45/claude-codebase-audit
-/plugin install codebase-audit
+
+The [`skills`](https://github.com/vercel-labs/skills) CLI detects the coding agents you have
+installed (or asks which ones) and installs all 12 skills into a shared `.agents/skills/`
+folder, symlinked for each agent. Pick agents explicitly with `-a`, install user-wide with `-g`:
+
+```bash
+npx skills add appuk45/claude-codebase-audit@v1.1.0 -a claude-code -a codex -a cursor -a github-copilot
 ```
 
-Or run locally from a clone (see USAGE.md).
+Install all 12 skills — the orchestrator dispatches dimensions itself, but standalone
+`/audit-*` commands need their own skill. `skills-lock.json` records a hash per skill; commit
+it and use `npx skills check` in CI to detect drift.
+
+**Claude Code plugin (alternative):** `/plugin marketplace add appuk45/claude-codebase-audit`
+then `/plugin install codebase-audit`.
 
 ## Usage
 
@@ -77,19 +93,41 @@ context, ignores, and suppressions. See `shared/config-schema.md`.
 
 ## Architecture
 
+Every skill folder is self-contained (the Agent Skills standard installs folders, nothing
+else), so the shared sources are copied into each skill by a sync tool:
+
 ```
-skills/audit-*/SKILL.md      thin LLM skills: discover -> grep signals -> confirm -> JSON
-skills/codebase-audit/       orchestrator: select -> dispatch subagents -> engine
-shared/detection/NN-*.md     the detection specs (checklists, signals, criteria)
-shared/*.md / schema.json    discovery, scoring rules, config + result contract
-engine/                      deterministic Python: validate/score/gate/md/sarif/html/compliance
+codebase-audit/
+  skills/audit-*/SKILL.md              thin LLM skills: discover -> grep signals -> confirm -> JSON
+  skills/audit-*/references/           generated copies: its detection spec, discovery, schema
+  skills/codebase-audit/SKILL.md       orchestrator: select -> parallel subagents (or sequential) -> engine
+  skills/codebase-audit/references/    generated copies: all 11 specs, discovery, schema, config, compliance
+  skills/codebase-audit/scripts/       deterministic Python engine (run_engine.py): validate/score/gate/md/sarif/html
+  shared/                              SOURCE OF TRUTH for specs, discovery, scoring, schema, config
+  tools/                               dev-only: sync_skills.py, compliance.py (not shipped)
+  tests/                               pytest (engine, fail-closed gate, packaging contract)
 ```
+
+Dimensions run as parallel subagents where the agent supports them (Claude Code, Codex,
+Cursor, Copilot) and sequentially otherwise. A dimension that fails to produce a result is
+reported as **ERROR** and fails the CI gate by default (`gate.fail_on_error`).
 
 ## Development
 
-```
+```bash
+cd codebase-audit
 pip install -r requirements-dev.txt
-pytest engine/ -v
+python -m tools.sync_skills          # after editing anything in shared/
+python -m tools.sync_skills --check  # CI: copies must match shared/
+pytest tests -v
 ```
+
+## Releasing (pinned versions)
+
+1. Bump the version in `codebase-audit/.claude-plugin/plugin.json` and
+   `codebase-audit/skills/codebase-audit/scripts/engine/__init__.py` (a test enforces they match).
+2. Merge to `main`, then tag: `git tag v1.1.0 && git push origin v1.1.0`.
+3. The `release` workflow checks the tag matches both versions, runs the tests, and publishes
+   a GitHub release. Users pin with `npx skills add appuk45/claude-codebase-audit@v1.1.0`.
 
 Scoring/gate rules: `shared/scoring.md`. Result contract: `shared/schema.json`.

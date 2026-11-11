@@ -363,3 +363,22 @@ skills (this caught a real miss in `issue_error_swallowing`).
 - Languages beyond Python + JS/TS.
 - audit-testing, audit-data-privacy, audit-accessibility, audit-fix skills.
 - Standalone licensing/SBOM skill (folded into audit-dependencies).
+
+## 13. Tool-Agnostic Distribution (v1.1.0, 2026-11-11)
+
+Supersedes §2 "Packaging: single plugin bundle" and the `${CLAUDE_PLUGIN_ROOT}` convention.
+
+**Goal:** install and run in any Agent Skills client (Claude Code, Codex, Cursor, GitHub
+Copilot, …) via `npx skills add appuk45/claude-codebase-audit@vX.Y.Z`, with pinned releases.
+
+| Decision | Choice | Rationale |
+|---|---|---|
+| Installer | `npx skills` (vercel-labs/skills), not a custom installer | Auto-detects ~75 agents, symlinks a canonical `.agents/skills/`, lockfile + `check`/`update`; zero adapter code to maintain. |
+| Skill format | Agent Skills open standard (agentskills/agentskills) | Read by every target tool; relative paths from the skill root; `name` = dir name. |
+| Self-contained folders | Generated copies of `shared/` in each `skills/*/references/` | Verified: `npx skills` installs only the skill folder (nested files included, `__pycache__` excluded); the v1.0 layout installed only 12 bare SKILL.md files. `shared/` stays the single edited source; `tools/sync_skills.py --check` + tests prevent drift. |
+| Engine packaging | Bundled in `skills/codebase-audit/scripts/` | One tag pins skills + engine together (no second package version to keep in step); no extra install step. Cost: Python 3.11 + jsonschema + PyYAML on the machine. |
+| Parallelism | Subagents where supported, sequential fallback | Subagent mechanics differ per tool; the orchestrator states the task generically. Each dimension writes `.codebase-audit/results/<key>.json`, so sequential runs carry no context between dimensions. |
+| Failure handling | Fail-closed: `--expect` + `gate.fail_on_error: true` | A crashed dimension previously scored 10.0 and passed the gate. Now ERROR, excluded from the average, gate fails. |
+| Releases | git tag `vX.Y.Z` → `release.yml` checks tag == plugin.json == engine `__version__`, tests, GitHub release | Pinned installs are reproducible; `skills-lock.json` hashes detect tampering/drift. |
+
+Claude Code plugin install (`/plugin install`) keeps working from the same folders.

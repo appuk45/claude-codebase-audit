@@ -16,8 +16,8 @@
    `tfsec`. Interpret + dedupe. Fallback: parse Dockerfile/manifests/`.tf` directly.
 4. Apply `confirm`. Assign `severity`. **Security items do NOT relax with maturity** — hold
    their level; only hardening/probes/logging drop at prototype.
-5. Consult `examples/10-container-iac.md` only when ambiguous.
-6. Emit `AuditResult` JSON per `shared/schema.json`. Score per `shared/scoring.md`.
+5. Consult `references/detection/examples/10-container-iac.md` only when ambiguous.
+6. Emit `AuditResult` JSON per `references/schema.json`. Score per `references/scoring.md`.
 
 ---
 

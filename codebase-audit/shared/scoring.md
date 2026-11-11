@@ -10,10 +10,16 @@ rounded to 1 dp. Info findings carry weight 0. **Display only** — labeled "ind
 - **Overall score** = average of applicable (non-N/A) dimension scores.
 - **Pass rate** per dimension = `passed / (total − skipped)` — applicable items only.
 
+## Errored dimensions (fail-closed)
+- A dimension with an `error` field (no result file, invalid JSON, schema-invalid) scores
+  **ERROR**, is excluded from the overall average, and never shows as a clean 10/10.
+- In `--ci` mode it fails the gate unless `gate.fail_on_error: false`.
+
 ## CI gate (authoritative — NOT the score)
 Count raw severities across all dimensions; compare to config thresholds. A `null`
 threshold means ignore. Suppressions (`checklist_id@file`) are removed before counting.
-Any breach → exit 1; otherwise exit 0. Implemented in `engine/gate.py`.
+Any breach → exit 1; invalid input → exit 2; otherwise exit 0. Implemented in the
+engine's `gate.py`.
 
 The engine is the single source of these computations; skills must call
-`python -m engine.cli`, never re-implement the math.
+`scripts/run_engine.py` (in the codebase-audit skill), never re-implement the math.

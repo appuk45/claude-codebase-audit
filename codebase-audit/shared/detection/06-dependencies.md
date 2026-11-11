@@ -17,8 +17,8 @@
 4. Distinguish **dev vs runtime** deps — dev-only vulnerabilities are lower severity.
 5. Assign `severity` with maturity modifiers. `dep_known_cves` + `dep_git_secrets` hold their
    floor.
-6. Consult `examples/06-dependencies.md` only when ambiguous.
-7. Emit `AuditResult` JSON per `shared/schema.json`. Score per `shared/scoring.md`.
+6. Consult `references/detection/examples/06-dependencies.md` only when ambiguous.
+7. Emit `AuditResult` JSON per `references/schema.json`. Score per `references/scoring.md`.
 
 ---
 
