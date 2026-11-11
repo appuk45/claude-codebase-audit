@@ -14,8 +14,8 @@ target) before releasing a change to skill descriptions, frontmatter or the orch
    ```
 2. Install the version under test into it, for Cursor:
    ```bash
-   # a branch under review
-   npx skills add https://github.com/appuk45/claude-codebase-audit/tree/<branch-name> -a cursor
+   # a branch under review (the .git#<branch> form: /tree/<branch> breaks on names with a "/")
+   npx skills add "https://github.com/appuk45/claude-codebase-audit.git#feature/agent-invocation" -a cursor
    # or a release
    npx skills add https://github.com/appuk45/claude-codebase-audit/tree/vX.Y.Z -a cursor
    ```
