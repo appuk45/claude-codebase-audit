@@ -2,19 +2,29 @@
 
 ## 1. Install
 
-**Any agent, pinned release (recommended):**
+**Any agent — latest release:**
 ```bash
-npx skills add appuk45/claude-codebase-audit@v1.1.0
+npx skills add appuk45/claude-codebase-audit
+```
+**Any agent — a specific version** (recommended for teams and CI; versions are on the
+[Releases](https://github.com/appuk45/claude-codebase-audit/releases) page):
+```bash
+npx skills add https://github.com/appuk45/claude-codebase-audit/tree/v1.1.1
 ```
 The installer detects your coding agents (Claude Code, Codex, Cursor, GitHub Copilot, Gemini
 CLI, OpenCode, …) or asks which to target. Choose explicitly with `-a`, and use `-g` for a
 user-wide install instead of a per-project one:
 ```bash
-npx skills add appuk45/claude-codebase-audit@v1.1.0 -a codex -a cursor -g
+npx skills add appuk45/claude-codebase-audit -a codex -a cursor -g
 ```
 Skills land in `.agents/skills/` (project) and are symlinked into each agent's own folder.
 Commit `skills-lock.json` and run `npx skills check` in CI to catch unreviewed changes.
-To upgrade, re-run `add` with the new tag; `npx skills remove` uninstalls.
+Without a version, `npx skills update` moves you to the newest release; with a version, re-run
+`add` with the new version's URL to upgrade. `npx skills remove` uninstalls.
+
+> Use the `…/tree/vX.Y.Z` URL to pin. The short form `appuk45/claude-codebase-audit@vX.Y.Z`
+> only works with `skills` 1.8.1 or newer; older CLIs read `@vX.Y.Z` as a skill name and
+> install nothing.
 
 **Claude Code plugin marketplace (Claude Code only):**
 ```

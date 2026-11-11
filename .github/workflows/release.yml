@@ -2,8 +2,8 @@ name: release
 
 # Every push to main is a release (main only receives release/* and hotfix merges).
 # This job creates the vX.Y.Z tag and GitHub release itself: a tag pushed by a workflow
-# cannot trigger another workflow. Users then pin with:
-#   npx skills add appuk45/claude-codebase-audit@vX.Y.Z
+# cannot trigger another workflow. Users then install the latest release, or pin with:
+#   npx skills add https://github.com/appuk45/claude-codebase-audit/tree/vX.Y.Z
 on:
   push:
     branches: [main]
@@ -45,3 +45,27 @@ jobs:
         run: |
           gh release create "$TAG" --target "$GITHUB_SHA" --generate-notes \
             --title "codebase-audit $TAG"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Verify the published tag installs (pinned URL, as documented)
+        # skills@1.7.6 is the stricter CLI: it rejects the short owner/repo@vX.Y.Z form.
+        env:
+          TAG: ${{ steps.gate.outputs.tag }}
+        run: |
+          dir="$RUNNER_TEMP/verify-install" && mkdir -p "$dir" && cd "$dir" && git init -q
+          npx -y skills@1.7.6 add "https://github.com/$GITHUB_REPOSITORY/tree/$TAG" -a codex -y
+          test -f .agents/skills/codebase-audit/scripts/run_engine.py
+          files=$(find .agents/skills -type f | wc -l)
+          echo "installed files: $files"
+          test "$files" -gt 100
+          python3 - "$TAG" <<'PY'
+          import json, sys
+          lock = json.load(open("skills-lock.json"))["skills"]
+          refs = {name: s.get("ref") for name, s in lock.items()}
+          assert len(refs) == 12, f"expected 12 skills, got {sorted(refs)}"
+          bad = {n: r for n, r in refs.items() if r != sys.argv[1]}
+          assert not bad, f"lockfile refs not pinned to {sys.argv[1]}: {bad}"
+          print(f"all 12 skills pinned to {sys.argv[1]}")
+          PY
+          python3 .agents/skills/codebase-audit/scripts/run_engine.py --version

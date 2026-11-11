@@ -1,6 +1,6 @@
 """Deterministic scoring/gate/report engine for codebase-audit."""
 
-__version__ = "1.1.0"
+__version__ = "1.1.1"
 
 # audit key -> ISO/IEC 25010 characteristic (used for error placeholders)
 DIMENSIONS = {

@@ -102,7 +102,7 @@ cd codebase-audit
 pip install -r requirements-dev.txt
 python -m tools.sync_skills             # after editing shared/ (also regenerates compliance-map.md)
 python -m tools.sync_skills --check     # verify copies
-pytest tests -v                         # 72 tests
+pytest tests -v                         # 73 tests
 python -m tools.bump_version 1.2.0      # set the version everywhere (release branches only)
 python -m tools.release_gate --head release/v1.2.0   # what the release-gate check runs
 # manual engine run (any cwd):
@@ -110,16 +110,22 @@ python3 skills/codebase-audit/scripts/run_engine.py --results-dir R --expect sec
   --out report.md --formats html,md,sarif --total-lines 1000 [--ci]
 # install smoke test into a scratch project:
 npx -y skills@1.7.6 add /path/to/claude-codebase-audit -a codex -y
+# what users run (latest / pinned):
+npx skills add appuk45/claude-codebase-audit
+npx skills add https://github.com/appuk45/claude-codebase-audit/tree/vX.Y.Z
 ```
 
 ## Status & roadmap
 
 - **v1.0.0**: 11 dimension skills + orchestrator + engine, Claude Code plugin only. Merged to
   `main` via PRs #1–#4.
-- **v1.1.0** (merged to `dev` via PR #5, not yet released): tool-agnostic Agent Skills
-  layout, `npx skills` install with pinned tags, fail-closed gate for errored dimensions,
-  CI workflows. Release flow (dev → release/vX.Y.Z → main, auto-tag) added on
-  `chore/release-flow`.
+- **v1.1.0** (released 2026-11-11, PRs #5–#7): tool-agnostic Agent Skills layout, `npx skills`
+  install, fail-closed gate for errored dimensions, CI, and the release flow
+  (dev → release/vX.Y.Z → main, auto-tag).
+- **v1.1.1** (hotfix): install docs. Unpinned `npx skills add appuk45/claude-codebase-audit`
+  = latest release; pin with `…/claude-codebase-audit/tree/vX.Y.Z`. The short
+  `owner/repo@vX.Y.Z` form installs nothing on `skills` < 1.8.1. `release.yml` now installs
+  each published tag from GitHub to verify it.
 - **Known gaps**: detection accuracy is unmeasured (no test runs an LLM against the fixture);
   the line-normalized display score barely moves on large repos; only Python + JS/TS specs;
   Windows needs Git Bash/WSL (discovery is POSIX shell).
