@@ -3,7 +3,7 @@
     python -m tools.bump_version 1.2.0
 
 Updates `.claude-plugin/plugin.json`, the engine's `__version__`, and every
-`claude-codebase-audit@vX.Y.Z` install snippet in README.md / USAGE.md.
+pinned-install example (`.../claude-codebase-audit/tree/vX.Y.Z`) in README.md / USAGE.md.
 """
 
 import argparse

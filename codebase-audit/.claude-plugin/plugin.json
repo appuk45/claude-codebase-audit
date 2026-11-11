@@ -1,6 +1,6 @@
 {
   "name": "codebase-audit",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "Enterprise codebase audit across 11 ISO/IEC 25010 dimensions — security (OWASP 2025), performance, architecture, dependencies/supply-chain, resilience, observability and more. Grep-first, archetype-adaptive detection with a deterministic scoring/gate engine; outputs Markdown, SARIF 2.1.0 (CI code-scanning), and a self-contained HTML dashboard.",
   "author": { "name": "Appu K" },
   "license": "MIT",
