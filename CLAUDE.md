@@ -11,9 +11,20 @@ For every change, no matter how small it looks:
 1. **Brainstorm** — discuss options, trade-offs and open questions. No file changes.
 2. **Spec** — write a short spec (goal, decisions, scope, out of scope). Wait for approval.
 3. **Plan** — list the steps and files they touch. Wait for approval.
-4. **Execute** — only after the plan is approved, and only on a feature branch (never `main`).
+4. **Execute** — only after the plan is approved, and only on a work branch (never `main`).
 
 A question from the owner ("what is your suggestion?") is not approval to implement.
+
+**Branch naming** — every new piece of work gets its own branch with one of these prefixes:
+
+| Prefix | Use for |
+|---|---|
+| `feature/<name>` | new features |
+| `fix/<name>` | bug fixes |
+| `refactor/<name>` | restructuring without behaviour change |
+| `chore/<name>` | maintenance: docs, dependencies, CI, tooling |
+
+Use short kebab-case names, e.g. `fix/fail-open-gate`, `chore/update-docs`.
 
 ## Repo layout
 
@@ -95,7 +106,7 @@ npx -y skills@1.7.6 add /path/to/claude-codebase-audit -a codex -y
 
 - **v1.0.0**: 11 dimension skills + orchestrator + engine, Claude Code plugin only. Merged to
   `main` via PRs #1–#4.
-- **v1.1.0** (this restructure): tool-agnostic Agent Skills layout, `npx skills` install with
+- **v1.1.0** (branch `feature/tool-agnostic-agent-skills`, not yet merged): tool-agnostic Agent Skills layout, `npx skills` install with
   pinned tags, fail-closed gate for errored dimensions, CI + release workflows.
 - **Known gaps**: detection accuracy is unmeasured (no test runs an LLM against the fixture);
   the line-normalized display score barely moves on large repos; only Python + JS/TS specs;
